@@ -1,0 +1,24 @@
+# 게임 원본·산출물 (배포하지 않음)
+*.iso
+*.xdelta
+*.DAT
+SLPM_650.78*
+work/
+extract/
+# 비공개 번역·원문 키
+translation/ko_raw/
+translation/ko/
+translation/keys.json
+translation/ko_fix.json
+translation/tex_boxes.json
+translation/tex_manual.json
+# 글꼴·외부 실행 파일·이미지
+*.ttf
+*.otf
+*.exe
+*.dll
+*.png
+*.zip
+# 파이썬
+__pycache__/
+*.pyc
