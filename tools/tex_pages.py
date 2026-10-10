@@ -58,6 +58,7 @@ def main():
                 hsh = hashlib.md5(blob).hexdigest()[:12]
                 if any(v['blob'] == hsh for v in index.values()):
                     continue
+                tex13._cache.clear()
                 for (tbp, tbw, psm), ix in blob_views(fb, p, blob):
                     vid = '%s_%d_%d_%d' % (hsh, tbp, tbw, psm)
                     Image.fromarray(ix).save(os.path.join(OUT, vid + '.png'))

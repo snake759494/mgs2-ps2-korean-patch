@@ -90,9 +90,14 @@ def main():
     else:
         spec = make_spec()
         man = os.path.join(R, 'translation/tex_manual.json')
-    vix = json.load(open(os.path.join(R, 'work/view_index.json')))
+    # 영역 이름 = {묶음해시}_{tbp}_{tbw}_{psm} 에서 직접 해석 (전체 영역 생성 단계 불필요)
+    def _v(vid):
+        h, tbp, tbw, psm = vid.rsplit('_', 3)
+        return dict(blob=h, view=[int(tbp), int(tbw), int(psm)])
+    vix = {vid: _v(vid) for vid in spec}
     if man and os.path.exists(man):
         for vid, boxes in json.load(open(man, encoding='utf8')).items():
+            vix[vid] = _v(vid)
             def hit(b):
                 return any(not (b[2] <= m[0] or b[0] >= m[2] or b[3] <= m[1] or b[1] >= m[3]) for m in boxes)
             spec[vid] = [b for b in spec.get(vid, []) if not hit(b)] + boxes   # 수동 영역과 겹치는 자동 상자 제거

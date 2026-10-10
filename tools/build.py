@@ -158,6 +158,48 @@ def patch_dir(iso, name, lba, size):
     raise SystemExit('디렉터리 레코드 없음: ' + name)
 
 
+def _crc_itu(b):
+    crc = 0
+    for x in b:
+        crc ^= x << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ 0x1021) & 0xffff if crc & 0x8000 else (crc << 1) & 0xffff
+    return crc
+
+
+def patch_udf(iso, old_lba, lba, size):
+    """UDF 파일 항목(태그 261)에서 old_lba 를 가리키는 단일 short_ad 를 새 위치·크기로 수정"""
+    iso.seek(256 * 2048)
+    a = iso.read(2048)
+    vlen, vloc = struct.unpack_from('<II', a, 16)
+    ps = None
+    for s in range(vloc, vloc + vlen // 2048):
+        iso.seek(s * 2048)
+        b = iso.read(2048)
+        if struct.unpack_from('<H', b, 0)[0] == 5:
+            ps = struct.unpack_from('<I', b, 188)[0]
+            break
+    for s in range(ps, ps + 4000):
+        iso.seek(s * 2048)
+        b = bytearray(iso.read(2048))
+        if struct.unpack_from('<H', b, 0)[0] != 261:
+            continue
+        l_ea = struct.unpack_from('<I', b, 168)[0]
+        ln, pos = struct.unpack_from('<II', b, 176 + l_ea)
+        if pos + ps != old_lba:
+            continue
+        struct.pack_into('<Q', b, 56, size)                          # Information Length
+        struct.pack_into('<Q', b, 64, (size + 2047) // 2048)         # Logical Blocks Recorded
+        struct.pack_into('<II', b, 176 + l_ea, (ln & 0xc0000000) | size, lba - ps)
+        crclen = struct.unpack_from('<H', b, 10)[0]
+        struct.pack_into('<H', b, 8, _crc_itu(bytes(b[16:16 + crclen])))
+        b[4] = sum(b[i] for i in range(16) if i != 4) & 0xff
+        iso.seek(s * 2048)
+        iso.write(b)
+        return
+    raise SystemExit('UDF 파일 항목 없음')
+
+
 DIRSECS = []
 
 
@@ -196,7 +238,6 @@ def main():
     end = SIZE['STAGE'] // 0x800
     f.seek(0)
     orig_head = f.read(0x800)
-    stages = []
     for si, (name, off) in enumerate(t):
         nxt = t[si + 1][1] if si + 1 < len(t) else end
         raw, hsz, ents = read_stage(f, w0, name, off, nxt)
@@ -236,27 +277,16 @@ def main():
                     ch = True
             if ch:
                 newpages[pj] = bytes(u)
-        sb = rebuild_stage(raw, name, w0, newpages) if newpages else raw
-        if len(sb) <= len(raw):
+        if newpages:
+            sb = rebuild_stage(raw, name, w0, newpages)
+            if len(sb) > len(raw):
+                raise SystemExit('스테이지 증가: %s %d > %d' % (name, len(sb), len(raw)))
             sb = sb + b'\0' * (len(raw) - len(sb))
-        else:
-            log('스테이지 증가', name, len(raw), len(sb))
-        stages.append((name, sb))
-    hdr, _ = crypt(orig_head[4:16], w0, w0 ^ 0xf0f0)
-    tocb = bytearray()
-    off = 1
-    for name, sb in stages:
-        tocb += name.encode().ljust(8, b'\0') + struct.pack('<I', off)
-        off += len(sb) // 0x800
-    eh, k = crypt(hdr + bytes(tocb), w0, w0 ^ 0xf0f0)
-    head = struct.pack('<I', w0) + eh
-    head = head + orig_head[len(head):0x800]
-    sd = head + b''.join(sb for _, sb in stages)
-    log('STAGE 크기', len(sd), '원본', SIZE['STAGE'])
-    if len(sd) > SIZE['STAGE']:
-        raise SystemExit('STAGE.DAT 증가: 재배치 필요')
-    iso.seek(LBA['STAGE'] * 2048)
-    iso.write(sd + b'\0' * (SIZE['STAGE'] - len(sd)))
+            # 길이가 원본과 같으므로 TOC 오프셋도 그대로: 원래 위치에 바로 기록(메모리 절약)
+            iso.seek(LBA['STAGE'] * 2048 + off * 0x800)
+            iso.write(sb)
+        del raw
+    log('STAGE 완료')
     # DEMO/VOX 자막
     for nm in ('DEMO', 'VOX'):
         n = 0
@@ -273,17 +303,19 @@ def main():
                 iso.write(nc)
                 n += 1
         log(nm, '청크 수정', n)
-    # ELF: ISO 끝으로 재배치
+    # ELF: VOX.DAT 뒤 빈 공간(마지막 UDF 앵커 앞)에 배치. ISO 크기는 원본 그대로.
     elf = open(os.path.join(R, 'extract/SLPM_650.78'), 'rb').read()
     ne = elf_patch(elf, font)
+    newlba = LBA['VOX'] + SIZE['VOX'] // 2048
     iso.seek(0, 2)
-    newlba = (iso.tell() + 2047) // 2048
+    total = iso.tell() // 2048
+    nsec = (len(ne) + 2047) // 2048
+    if newlba + nsec > total - 1:
+        raise SystemExit('ELF 가 빈 공간을 넘침: %d 섹터' % nsec)
     iso.seek(newlba * 2048)
     iso.write(ne + b'\0' * ((-len(ne)) % 2048))
-    total = iso.tell() // 2048
     patch_dir(iso, 'SLPM_650.78;1', newlba, len(ne))
-    iso.seek(0x8000 + 80)
-    iso.write(struct.pack('<I', total) + struct.pack('>I', total))
+    patch_udf(iso, 284, newlba, len(ne))
     iso.close()
     log('미번역', len(ctx.miss), '줄넘침', len(ctx.over))
     json.dump([list(x) for x in ctx.over], open(os.path.join(R, 'work/overflow.json'), 'w', encoding='utf8'),
