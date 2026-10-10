@@ -25,11 +25,12 @@ def rebuild_stage(raw,name,w0,newpages):
     hdr,_=crypt(raw[:hsz],k,i); hdr=bytearray(hdr)
     ents=[list(struct.unpack_from('<II',hdr,4+j*8)) for j in range(n)]
     # 페이지 순서대로 7e 항목 찾기
-    out=bytearray(); pi=-1
+    out=bytearray(); pi=-1; oend=0
     for j,(a,b) in enumerate(ents):
         if a>>24==0x7e:
             pi+=1; cl=a&0xffffff; off=b
             src=raw[hsz+off:hsz+off+((cl+3)&~3)]
+            oend=max(oend,(off+cl+0x7ff)&~0x7ff)
             if pi in newpages:
                 enc,ncl=page_encode(newpages[pi],struct.unpack_from('<H',src,0)[0])
             else:
@@ -37,6 +38,9 @@ def rebuild_stage(raw,name,w0,newpages):
             noff=len(out); out+=enc
             while len(out)%0x800: out+=b'\0'
             ents[j]=[(0x7e<<24)|ncl,noff]
+    # 압축 페이지 뒤에 이어지는 비압축 페이지(사운드 등)를 그대로 붙인다
+    tail=raw[hsz+oend:].rstrip(b'\0')
+    out+=tail+b'\0'*((-len(tail))%0x800)
     for j,(a,b) in enumerate(ents): struct.pack_into('<II',hdr,4+j*8,a,b)
     eh,_=crypt(bytes(hdr),k,i)
     return eh+bytes(out)

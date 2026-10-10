@@ -1,3 +1,3 @@
 aa3a1d8541d01a627a203a443bfd9a8f51dc223930d42c958a8b21c529918819  Metal Gear Solid 2 - Sons of Liberty (Japan).iso
-d1b0ae2e7adfd80959a4d0ff94e1c2cd1d30d2fc8b1c637832e567278d79c255  Metal Gear Solid 2 - Sons of Liberty (Korean).iso
-3521d21d403e12931931be46c4e549fa2897345f1ba93451045e25004ba3595a  MGS2_PS2_KO_v1.0.1.xdelta
+3fcb06aebb332df0beaac434b07814a6361eebcd7d48a88fa7b6467854d83e18  Metal Gear Solid 2 - Sons of Liberty (Korean).iso
+acd428ef9b008637998e03b88f7bc6010e5663d23e3e5ffe19601ceaa729c6d3  MGS2_PS2_KO_v1.0.2.xdelta

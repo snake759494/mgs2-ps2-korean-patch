@@ -1,11 +1,11 @@
 {
- "version": "v1.0.1",
- "asset": "MGS2_PS2_KO_v1.0.1.xdelta",
- "asset_size": 254360653,
- "asset_sha256": "3521d21d403e12931931be46c4e549fa2897345f1ba93451045e25004ba3595a",
+ "version": "v1.0.2",
+ "asset": "MGS2_PS2_KO_v1.0.2.xdelta",
+ "asset_size": 254032131,
+ "asset_sha256": "acd428ef9b008637998e03b88f7bc6010e5663d23e3e5ffe19601ceaa729c6d3",
  "source_iso_size": 4648140800,
  "source_iso_md5": "fa759417f83449258e6d5fa17bd2c2e3",
  "source_iso_sha256": "aa3a1d8541d01a627a203a443bfd9a8f51dc223930d42c958a8b21c529918819",
  "result_iso_size": 4648140800,
- "result_iso_sha256": "d1b0ae2e7adfd80959a4d0ff94e1c2cd1d30d2fc8b1c637832e567278d79c255"
+ "result_iso_sha256": "3fcb06aebb332df0beaac434b07814a6361eebcd7d48a88fa7b6467854d83e18"
 }

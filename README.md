@@ -1,10 +1,10 @@
 # 메탈기어 솔리드 2 선즈 오브 리버티 (PS2) 한글패치
 
-PS2 일본판 **METAL GEAR SOLID 2 SONS OF LIBERTY (SLPM-65078)** 용 비공식 한국어 패치입니다. 코덱 무전, 컷신 자막, 인게임 음성 자막, 아이템·무기 설명과 게임 내 문서, 그리고 그림 속 글자(지역명 카드·조작 튜토리얼·컨트롤러 조작 도해·고지문·인용문·스태프 크레디트)를 한국어로 바꿨습니다. 현재 배포판은 **v1.0.1 (2026-10-10)** 입니다.
+PS2 일본판 **METAL GEAR SOLID 2 SONS OF LIBERTY (SLPM-65078)** 용 비공식 한국어 패치입니다. 코덱 무전, 컷신 자막, 인게임 음성 자막, 아이템·무기 설명과 게임 내 문서, 그리고 그림 속 글자(지역명 카드·조작 튜토리얼·컨트롤러 조작 도해·고지문·인용문·스태프 크레디트)를 한국어로 바꿨습니다. 현재 배포판은 **v1.0.2 (2026-10-10)** 입니다.
 
 [패치 다운로드](https://github.com/snake759494/mgs2-ps2-korean-patch/releases/latest) · [기술 설명](docs/TECHNICAL.md) · [재빌드](docs/BUILD.md) · [변경 기록](CHANGELOG.md) · [권리 안내](RIGHTS.md)
 
-릴리즈 첨부 파일은 **MGS2_PS2_KO_v1.0.1.xdelta 하나**입니다. 저장소에는 제작 도구·기술 문서·번역 규칙·검증 자료만 공개합니다. 원본 및 완성 디스크 이미지, 추출한 게임 파일, 글꼴 파일, 외부 실행 파일, 일본어 원문, **대사 번역 전문**은 포함하지 않습니다(번역은 패치 안에만 들어 있습니다). GitHub 가 자동 생성하는 Source code ZIP/TAR 는 저장소 소스의 압축본이며 게임 파일이 아닙니다.
+릴리즈 첨부 파일은 **MGS2_PS2_KO_v1.0.2.xdelta 하나**입니다. 저장소에는 제작 도구·기술 문서·번역 규칙·검증 자료만 공개합니다. 원본 및 완성 디스크 이미지, 추출한 게임 파일, 글꼴 파일, 외부 실행 파일, 일본어 원문, **대사 번역 전문**은 포함하지 않습니다(번역은 패치 안에만 들어 있습니다). GitHub 가 자동 생성하는 Source code ZIP/TAR 는 저장소 소스의 압축본이며 게임 파일이 아닙니다.
 
 ## 대상 버전
 
@@ -17,10 +17,10 @@ PS2 일본판 **METAL GEAR SOLID 2 SONS OF LIBERTY (SLPM-65078)** 용 비공식 
 | 원본 ISO 크기 | 4,648,140,800 바이트 |
 | **원본 ISO MD5** | `fa759417f83449258e6d5fa17bd2c2e3` |
 | 원본 ISO SHA-256 | `aa3a1d8541d01a627a203a443bfd9a8f51dc223930d42c958a8b21c529918819` |
-| xdelta 파일 크기 | 254,360,653 바이트 |
-| xdelta SHA-256 | `3521d21d403e12931931be46c4e549fa2897345f1ba93451045e25004ba3595a` |
+| xdelta 파일 크기 | 254,032,131 바이트 |
+| xdelta SHA-256 | `acd428ef9b008637998e03b88f7bc6010e5663d23e3e5ffe19601ceaa729c6d3` |
 | 적용 결과 ISO 크기 | 4,648,140,800 바이트 (원본과 같음) |
-| 적용 결과 ISO SHA-256 | `d1b0ae2e7adfd80959a4d0ff94e1c2cd1d30d2fc8b1c637832e567278d79c255` |
+| 적용 결과 ISO SHA-256 | `3fcb06aebb332df0beaac434b07814a6361eebcd7d48a88fa7b6467854d83e18` |
 
 ## 패치 적용 방법
 
@@ -34,7 +34,7 @@ Get-FileHash -Algorithm MD5 -LiteralPath '.\Metal Gear Solid 2 - Sons of Liberty
 
 ### xdelta UI 사용
 
-1. 릴리즈에서 `MGS2_PS2_KO_v1.0.1.xdelta` 를 받습니다.
+1. 릴리즈에서 `MGS2_PS2_KO_v1.0.2.xdelta` 를 받습니다.
 2. xdelta3 패치를 지원하는 도구의 **Apply Patch** 기능을 엽니다.
 3. **Patch** 에 xdelta 파일, **Source File** 에 해시가 일치하는 원본 `.iso` 를 선택합니다.
 4. **Output File** 에 새 파일명(예: `Metal Gear Solid 2 - Sons of Liberty (Korean).iso`)을 지정합니다.
@@ -44,7 +44,7 @@ xdelta 는 호환성을 위해 2차 압축과 파일 경로 헤더 없이 만들
 ### 명령줄 사용
 
 ```powershell
-.\xdelta3.exe -d -s '.\Metal Gear Solid 2 - Sons of Liberty (Japan).iso' '.\MGS2_PS2_KO_v1.0.1.xdelta' '.\Metal Gear Solid 2 - Sons of Liberty (Korean).iso'
+.\xdelta3.exe -d -s '.\Metal Gear Solid 2 - Sons of Liberty (Japan).iso' '.\MGS2_PS2_KO_v1.0.2.xdelta' '.\Metal Gear Solid 2 - Sons of Liberty (Korean).iso'
 ```
 
 ## 한글화 범위
@@ -65,7 +65,7 @@ xdelta 는 호환성을 위해 2차 압축과 파일 경로 헤더 없이 만들
 ## 알려진 점
 
 - **오프닝 스태프 크레디트가 일본어로 나옵니다.** 해당 그림은 다른 크레디트 그림과 출처가 달라 아직 바꾸지 못했습니다. 다음 판에서 고칠 예정입니다.
-- v1.0 은 일부 환경(실기·OPL 등)에서 검은 화면으로 시작하지 않는 문제가 있었습니다. v1.0.1 을 쓰세요.
+- v1.0 은 일부 환경(실기·OPL 등)에서 검은 화면으로 시작하지 않았고, v1.0·v1.0.1 은 타이틀 BGM·아이템 획득음·무전 효과음 등이 나오지 않았습니다. v1.0.2 를 쓰세요.
 
 - PCSX2 v2.2.0 의 빠른 부팅과 BIOS 부팅 모두에서 확인했습니다. 확인한 범위는 다음과 같습니다. 전체 스토리 완주와 실기 확인은 하지 않았습니다.
   - 부팅, 새 게임 질문 화면(루비 표기 포함), 레이더 선택 화면

@@ -45,38 +45,59 @@ def has_local(b):
         i+=2
     return False
 def rebuild(g,newstr):
-    """newstr: {엔트리번호: 새 바이트(NUL 제외)}. 같은 길이의 gcx 반환"""
+    """newstr: {엔트리번호: 새 바이트(NUL 제외)}. 같은 길이의 gcx 반환
+    이진 자료(사운드 등)는 원래 절대 위치를 그대로 유지하고, 문자열만 빈 공간에 채운다."""
     r=parse(g); T,S,F=r['T'],r['S'],r['F']
     ents=r['ents']
     groups={}
     for k,e in enumerate(ents): groups.setdefault(e&0x7fffffff,[]).append(k)
     offs=sorted(groups)
-    region=bytearray(); newoff={}
-    for j,o in enumerate(offs):
-        e=offs[j+1] if j+1<len(offs) else F-S
-        ks=groups[o]; flagged=[k for k in ks if ents[k]>>31]
-        if flagged:
-            k0=flagged[0]; s=newstr.get(k0,r['strs'][k0])
-            for k in flagged[1:]:
-                if newstr.get(k,s)!=s: raise ValueError('공유 문자열 불일치')
-            pos=len(region); region+=s+b'\0'
-            # 같은 오프셋의 비문자열(길이 0 가정)
-            for k in ks: newoff[k]=pos
-        else:
-            al=o%16
-            while len(region)%16!=al: region+=b'\0'
-            pos=len(region); region+=g[S+o:S+e]
-            for k in ks: newoff[k]=pos
     allstr=[newstr.get(k,r['strs'][k]) for k in range(len(ents)) if ents[k]>>31]
     keepfont=any(has_local(x) for x in allstr)
     font=r['glyphs'] if keepfont else b''
-    fr=(S-T)+len(region)
+    # 사용 가능 영역: 문자열 영역 끝(글꼴 유지 시 F, 아니면 파일 끝-4)
+    lim=(F-S) if keepfont else (len(g)-S-4-0)
+    region=bytearray(g[S:S+lim]) if keepfont else bytearray(g[S:F])+bytearray(lim-(F-S))
+    used=bytearray(lim)
+    blobs=[]
+    for j,o in enumerate(offs):
+        e=offs[j+1] if j+1<len(offs) else F-S
+        if not any(ents[k]>>31 for k in groups[o]) and e>o:
+            used[o:e]=b'\1'*(e-o); blobs.append((o,e))
+    for i in range(lim):
+        if not used[i]: region[i]=0
+    newoff={}
+    for o in offs:
+        ks=groups[o]; flagged=[k for k in ks if ents[k]>>31]
+        if not flagged:
+            for k in ks: newoff[k]=o
+    def alloc(n,pref):
+        cand=[pref]+list(range(lim))
+        for p in cand:
+            if p+n<=lim and not any(used[p:p+n]): return p
+        raise OverflowError('gcx 넘침')
+    for o in offs:
+        ks=groups[o]; flagged=[k for k in ks if ents[k]>>31]
+        if not flagged: continue
+        k0=flagged[0]; s=newstr.get(k0,r['strs'][k0])
+        for k in flagged[1:]:
+            if newstr.get(k,s)!=s: raise ValueError('공유 문자열 불일치')
+        b=s+b'\0'; p=alloc(len(b),o)
+        region[p:p+len(b)]=b; used[p:p+len(b)]=b'\1'*len(b)
+        for k in ks: newoff[k]=p
+    if keepfont:
+        fr=r['fr']; body=bytes(region)+g[F:F+4+len(font)]
+    else:
+        end=max([i+1 for i in range(lim) if used[i]]+[F-S])
+        end=(end+3)&~3
+        fr=(S-T)+end; body=bytes(region[:end])+struct.pack('<I',0)
     out=bytearray(g[:T])
     tot=fr+4+len(font)
     out+=struct.pack('<4I',tot,0x10,r['sr'],fr)
     for k in range(len(ents)): out+=struct.pack('<I',(ents[k]&0x80000000)|newoff[k])
     assert len(out)==S
-    out+=region+struct.pack('<I',len(font))+font
+    out+=body
     if len(out)>len(g): raise OverflowError('gcx 넘침 %d>%d'%(len(out),len(g)))
     out+=b'\0'*(len(g)-len(out))
+    for o,e in blobs: assert out[S+o:S+e]==g[S+o:S+e]
     return bytes(out)
